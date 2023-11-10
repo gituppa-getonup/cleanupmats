@@ -2,6 +2,10 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class Main {
 
@@ -60,7 +64,7 @@ public class Main {
         }
 
         PersonHelper personHelper = new PersonHelper();
-        this.people = personHelper.generatePeople();
+        this.people = personHelper.generatePeople(this);
 
         if (this.getVerbose()) {
             this.people.stream().forEach(person -> System.out.println(person.toString() + " walked in."));
@@ -72,11 +76,12 @@ public class Main {
             return;
         }
 
-        people.stream().forEach(person -> person.startLayingMats(this));
+        ExecutorService es = Executors.newFixedThreadPool(2);
 
-        if (this.getVerbose()) {
-            System.out.println(floor);
-            floor.getFloorPieces().forEach(System.out::println);
+        try {
+            people.stream().forEach(person -> es.submit(() -> person.run()));
+        } finally {
+            es.shutdown();
         }
     }
 

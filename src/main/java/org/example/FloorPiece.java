@@ -45,4 +45,15 @@ public class FloorPiece {
     public void setMat(Mat mat) {
         this.mat = mat;
     }
+
+    public void setMatWithValidation(Mat mat)
+    {
+        if (this.mat == null)
+        {
+            this.mat = mat;
+        } else {
+            System.out.println("Can't place a mat when there's already one there at position " + this.getPosX() + ", " + this.getPosY() + ".");
+        }
+
+    }
 }

@@ -3,7 +3,10 @@ package org.example;
 import java.util.List;
 import java.util.Optional;
 
-public class Person {
+public class Person implements Runnable {
+
+    private Main m;
+
     private String name;
 
     public String getName() {
@@ -38,15 +41,24 @@ public class Person {
         this.personalLimit = personalLimit;
     }
 
+    @Override
+    public void run() {
+        startLayingMats();
+    }
 
-    public void startLayingMats(Main m) {
-        boolean finished = m.getFloor().getFloorPieces().stream().noneMatch(floorPiece -> floorPiece.getMat() == null) || m.getCarts().stream().allMatch(aCart -> aCart.getMats().isEmpty());
+    public synchronized void startLayingMats() {
+        boolean finished = this.m.getFloor().getFloorPieces().stream()
+                .noneMatch(floorPiece -> floorPiece.getMat() == null) || this.m.getCarts().stream().allMatch(aCart -> aCart.getMats().isEmpty());
 
         while (!finished) {
-            Cart cart = m.getCarts().stream().filter(aCart -> !aCart.isMoving() && aCart.getPosition() == "floor" && !aCart.getMats().isEmpty()).findAny().or(() -> this.getCartFromStorage(m)).orElse(null);
+            Cart cart = this.m.getCarts().stream()
+                    .filter(aCart -> !aCart.isMoving() && aCart.getPosition() == "floor" && !aCart.getMats().isEmpty())
+                    .findAny()
+                    .or(() -> this.getCartFromStorage())
+                    .orElse(null);
 
             if (cart == null) {
-                if (m.getVerbose()) {
+                if (this.m.getVerbose()) {
                     System.out.println(this.getName() + " can't find anything to do.");
                 }
 
@@ -56,39 +68,39 @@ public class Person {
 
 
             int numberOfMatsToGetFromCart = Math.min(this.getPersonalLimit() - this.getPersonalStack().size(), cart.getMats().size());
-            if (m.getVerbose() && numberOfMatsToGetFromCart > 0) {
+            if (this.m.getVerbose() && numberOfMatsToGetFromCart > 0) {
                 System.out.println(this.getName() + " is picking " + numberOfMatsToGetFromCart + " mats from a cart " + cart.getCharacteristic());
             }
             for (int i = 0; i < numberOfMatsToGetFromCart; i++) {
                 Mat mat = cart.getMats().remove(0);
                 this.getPersonalStack().add(mat);
-                if (m.getVerbose() && mat.isDamaged()) {
+                if (this.m.getVerbose() && mat.isDamaged()) {
                     System.out.println(this.getName() + " picked up a damaged mat.");
                 }
             }
 
-            if (m.getVerbose()) {
+            if (this.m.getVerbose()) {
                 System.out.println(this.getName() + " has a personal limit of " + this.getPersonalLimit() + " and is now carrying " + this.getPersonalStack().size() + " mats.");
             }
 
-            this.layDownMats(m);
+            this.layDownMats();
 
-            finished = m.getFloor().getFloorPieces().stream().noneMatch(floorPiece -> floorPiece.getMat() == null) || m.getCarts().stream().allMatch(aCart -> aCart.getMats().isEmpty());
-            if (m.getVerbose() && finished) {
+            finished = this.m.getFloor().getFloorPieces().stream().noneMatch(floorPiece -> floorPiece.getMat() == null) || this.m.getCarts().stream().allMatch(aCart -> aCart.getMats().isEmpty());
+            if (this.m.getVerbose() && finished) {
                 System.out.println(this.getName() + " is finished.");
             }
         }
     }
 
-    public Optional<Cart> getCartFromStorage(Main m) {
-        if (m.getVerbose()) {
+    public synchronized Optional<Cart> getCartFromStorage() {
+        if (this.m.getVerbose()) {
             System.out.println(this.getName() + " is looking for a cart in the storage.");
         }
 
-        Optional<Cart> possibleCart = m.getCarts().stream().filter(c -> c.getPosition().equals("storage")).findAny();
+        Optional<Cart> possibleCart = this.m.getCarts().stream().filter(c -> c.getPosition().equals("storage")).findAny();
 
-        if (m.getVerbose()) {
-            System.out.println(possibleCart.isPresent() ? "Found one with " + possibleCart.get().getCharacteristic() : "No cart.");
+        if (this.m.getVerbose()) {
+            System.out.println(possibleCart.isPresent() ? this.getName() + " found a cart with " + possibleCart.get().getCharacteristic() : "No cart.");
         }
 
         possibleCart.ifPresent(cart -> {
@@ -99,21 +111,27 @@ public class Person {
         return possibleCart;
     }
 
-    public void layDownMats(Main m) {
-        if (m.getVerbose()) {
+    public void layDownMats() {
+        if (this.m.getVerbose()) {
             this.personalStack.stream().filter(Mat::isDamaged).forEach(dm -> System.out.println(this.getName() + " found a damaged mat."));
         }
         this.getPersonalStack().removeIf(Mat::isDamaged);
 
         for (int i = 0; i < this.getPersonalStack().size(); i++) {
             Mat mat = this.getPersonalStack().remove(0);
-            Optional<FloorPiece> availableFloorPiece = m.getFloor().getFloorPieces().stream().filter(floorPiece -> floorPiece.getMat() == null).findAny();
+            Optional<FloorPiece> availableFloorPiece = this.m.getFloor().getFloorPieces().stream().filter(floorPiece -> floorPiece.getMat() == null).findAny();
             if (availableFloorPiece.isPresent()) {
                 mat.setColorUp(availableFloorPiece.get().getDesiredColor());
-                availableFloorPiece.get().setMat(mat);
+                if (m.getVerbose()) {
+                    System.out.println(this.getName() + " lays down a " + mat.getColorUp() + " mat on position " + availableFloorPiece.get().getPosX() + ", " + availableFloorPiece.get().getPosY() + ".");
+                }
+                availableFloorPiece.get().setMatWithValidation(mat);
             }
         }
     }
 
 
+    public void setM(Main m) {
+        this.m = m;
+    }
 }
