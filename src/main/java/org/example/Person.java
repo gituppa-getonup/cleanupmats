@@ -62,11 +62,11 @@ public class Person implements Runnable {
                 }
 
                 // try again in 10 secs.
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+//                try {
+//                    Thread.sleep(1000L);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
 
                 if (this.m.getVerbose()) {
                     System.out.println(this.getName() + " is done waiting.");

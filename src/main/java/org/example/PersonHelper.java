@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 public class PersonHelper {
     public List<Person> generatePeople(Main m) {
-        int numberThatShowUp = 2; // (int) Math.round(Math.random() * 15);
+        int numberThatShowUp = (int) Math.round(Math.random() * 15);
 
         List<Person> persons = IntStream.range(0, numberThatShowUp)
                 .mapToObj(i ->
