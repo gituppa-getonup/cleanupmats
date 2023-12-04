@@ -1,5 +1,8 @@
 package org.example;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class FloorPiece {
 
     @Override
@@ -46,14 +49,25 @@ public class FloorPiece {
         this.mat = mat;
     }
 
-    public void setMatWithValidation(Mat mat)
-    {
-        if (this.mat == null)
-        {
+    public void setMatWithValidation(Mat mat) {
+        if (this.mat == null) {
             this.mat = mat;
+            this.lock.unlock();
         } else {
-            System.out.println("Can't place a mat when there's already one there at position " + this.getPosX() + ", " + this.getPosY() + ".");
+            System.out.println("=== ERROR: Can't place a mat when there's already one there at position " + this.getPosX() + ", " + this.getPosY() + ".");
         }
+    }
 
+    private ReentrantLock lock = new ReentrantLock();
+
+    public synchronized boolean tryToGetLock() {
+        if (!lock.isLocked()) {
+            try {
+                return lock.tryLock(2, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 }

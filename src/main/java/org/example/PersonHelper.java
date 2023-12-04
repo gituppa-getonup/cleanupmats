@@ -8,9 +8,9 @@ import java.util.stream.IntStream;
 
 public class PersonHelper {
     public List<Person> generatePeople(Main m) {
-        int numberThatShowUp = (int) Math.round(Math.random() * 15);
+        int numberThatShowUp = 2; // (int) Math.round(Math.random() * 15);
 
-        List<Person> persons = IntStream.range(1, numberThatShowUp)
+        List<Person> persons = IntStream.range(0, numberThatShowUp)
                 .mapToObj(i ->
                 {
                     Person person = new Person();

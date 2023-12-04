@@ -2,10 +2,7 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 public class Main {
 
@@ -48,7 +45,7 @@ public class Main {
 
         if (this.getVerbose()) {
             System.out.println(floor);
-            floor.getFloorPieces().forEach(System.out::println);
+            //floor.getFloorPieces().forEach(System.out::println); // too much info
         }
 
         CartHelper cartHelper = new CartHelper();
